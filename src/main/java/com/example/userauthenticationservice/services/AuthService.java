@@ -6,10 +6,16 @@ import com.example.userauthenticationservice.exceptions.UserDoesntExistException
 import com.example.userauthenticationservice.models.Status;
 import com.example.userauthenticationservice.models.User;
 import com.example.userauthenticationservice.repos.UserRepository;
+import io.jsonwebtoken.Jwts;
+import org.antlr.v4.runtime.misc.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Optional;
 
@@ -42,7 +48,7 @@ public class AuthService implements IAuthService{
     }
 
     @Override
-    public User login(String email, String password) {
+    public Pair<User, MultiValueMap<String, String>> login(String email, String password) {
         Optional<User> userOptional = userRepo.getUserByEmail(email);
         if(userOptional.isEmpty()){
             throw new UserDoesntExistException("Incorrect email id, please check and login again");
@@ -52,6 +58,21 @@ public class AuthService implements IAuthService{
         if(bCryptPasswordEncoder.matches(password,userOptional.get().getPassword())){
             throw new IncorrectPasswordException("Password is incorrect please check and re-login");
         }
-        return userOptional.get();
+
+
+        String message = " { \n" +
+                "\"email\": \"bhoomika\" \n" +
+                        " }";
+        byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+        String token = Jwts.builder().content(bytes).compact();
+
+        MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+        header.add(HttpHeaders.SET_COOKIE, token);
+
+
+        Pair<User, MultiValueMap<String,String>> pair=new Pair<>(userOptional.get(), header);
+
+        return pair;
+
     }
 }
