@@ -3,6 +3,7 @@ package com.example.userauthenticationservice.controllers;
 import com.example.userauthenticationservice.dtos.LoginDto;
 import com.example.userauthenticationservice.dtos.SignupDto;
 import com.example.userauthenticationservice.dtos.UserDto;
+import com.example.userauthenticationservice.dtos.ValidateTokenRequest;
 import com.example.userauthenticationservice.models.User;
 import com.example.userauthenticationservice.services.IAuthService;
 import org.antlr.v4.runtime.misc.Pair;
@@ -39,6 +40,11 @@ public class AuthController {
         UserDto userDto = from(pair.a);
         MultiValueMap<String, String> header = pair.b;
         return new ResponseEntity<>(userDto,header, HttpStatusCode.valueOf(200));
+    }
+
+    @PostMapping("/validateToken")
+    public Boolean validateToken(@RequestBody ValidateTokenRequest validateTokenRequest) {
+        return authService.validateToken(validateTokenRequest.getUserId(), validateTokenRequest.getToken());
     }
 
     private UserDto from(User user){

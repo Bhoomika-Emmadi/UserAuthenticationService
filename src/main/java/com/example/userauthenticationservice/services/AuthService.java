@@ -8,6 +8,8 @@ import com.example.userauthenticationservice.models.User;
 import com.example.userauthenticationservice.models.UserSession;
 import com.example.userauthenticationservice.repos.SessionRepo;
 import com.example.userauthenticationservice.repos.UserRepository;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.MacAlgorithm;
 import org.antlr.v4.runtime.misc.Pair;
@@ -35,7 +37,9 @@ public class AuthService implements IAuthService{
     @Autowired
     private SessionRepo sessionRepo;
 
-    @Override
+    @Autowired
+    private SecretKey secretKey;
+
     public User signUp(String email, String password) {
         Optional<User> userOptional = userRepo.getUserByEmail(email);
         if(userOptional.isPresent()){
@@ -44,7 +48,7 @@ public class AuthService implements IAuthService{
         User user = new User();
         user.setEmail(email);
         user.setPassword(bCryptPasswordEncoder.encode(password));
-        user.setStatus(Status.INACTIVE);
+        user.setStatus(Status.ACTIVE);
         user.setCreatedAt(new Date());
         user.setLastUpdatedAt(new Date());
         userRepo.save(user);
@@ -87,8 +91,8 @@ public class AuthService implements IAuthService{
         userClaims.put("issuer","scaler");
 
 
-        MacAlgorithm algorithm = Jwts.SIG.HS256;
-        SecretKey secretKey = algorithm.key().build();
+//        MacAlgorithm algorithm = Jwts.SIG.HS256;
+//        SecretKey secretKey = algorithm.key().build();
 
 
         String token = Jwts.builder().claims(userClaims).signWith(secretKey).compact();
@@ -108,5 +112,57 @@ public class AuthService implements IAuthService{
 
         return pair;
 
+    }
+
+//    public boolean validateToken(Long userId, String token) {
+//
+//        Optional<UserSession> optionalSession = sessionRepo.findByUserIdAndToken(userId, token);
+//        if(optionalSession.isEmpty()){
+//            throw new UserDoesntExistException("User not found");
+//        }
+//
+//        UserSession userSession = new UserSession();
+//        JwtParser jwtParser = Jwts.parser().verifyWith(secretKey).build();
+//        Claims claims = jwtParser.parseSignedClaims(token).getPayload();
+//        Long expiryStoredInToken = (Long)claims.get("exp");
+//        Long currentTime =System.currentTimeMillis();
+//
+//        System.out.println(expiryStoredInToken);
+//        System.out.println(currentTime);
+//
+//        if(currentTime > expiryStoredInToken) {
+//            userSession.setStatus(Status.INACTIVE);
+//            sessionRepo.save(userSession);
+//            return false;
+//        }
+//
+//        return true;
+//    }
+
+
+    public Boolean validateToken(Long userId, String token) {
+        Optional<UserSession> optionalUserSession = sessionRepo.findByTokenAndUser_Id(token,userId);
+
+        if(optionalUserSession.isEmpty()) return false;
+
+        UserSession userSession = optionalUserSession.get();
+
+        String persistedToken = userSession.getToken();
+
+        JwtParser jwtParser = Jwts.parser().verifyWith(secretKey).build();
+        Claims claims = jwtParser.parseSignedClaims(persistedToken).getPayload();
+        Long expiryStoredInToken = (Long)claims.get("exp");
+        Long currentTime =System.currentTimeMillis();
+
+        System.out.println(expiryStoredInToken);
+        System.out.println(currentTime);
+
+        if(currentTime > expiryStoredInToken) {
+            userSession.setStatus(Status.INACTIVE);
+            sessionRepo.save(userSession);
+            return false;
+        }
+
+        return true;
     }
 }
