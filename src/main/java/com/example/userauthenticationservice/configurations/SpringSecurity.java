@@ -15,13 +15,13 @@ public class SpringSecurity {
 
     // need this function to disable the login which comes with default spring security dependency, and to permit all the incoming requests
     //commenting this for the Oauth usage as this bean is conflicting with the other beans in SecurityConfig class
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-//        httpSecurity.cors().disable();
-//        httpSecurity.csrf().disable();
-//        httpSecurity.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
-//        return httpSecurity.build();
-//    }
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.cors().disable();
+        httpSecurity.csrf().disable();
+        httpSecurity.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
+        return httpSecurity.build();
+    }
 
     //this is required to use create a singleton obj of BcryptPasswordEncoder by the spring container using @Autowired in service layer
     @Bean

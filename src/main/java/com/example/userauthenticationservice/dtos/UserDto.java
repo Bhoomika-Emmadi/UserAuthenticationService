@@ -17,5 +17,5 @@ public class UserDto {
     private Date createdAt;
     private Date lastUpdatedAt;
     private Status status;
-    private List<Roles> roles;
+//    private List<Roles> roles;
 }

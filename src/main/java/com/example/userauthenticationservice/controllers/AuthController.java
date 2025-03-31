@@ -53,7 +53,7 @@ public class AuthController {
         userDto.setEmail(user.getEmail());
         userDto.setStatus(user.getStatus());
         userDto.setCreatedAt(user.getCreatedAt());
-        userDto.setRoles(user.getRoles());
+//        userDto.setRoles(user.getRoles());
         userDto.setLastUpdatedAt(user.getLastUpdatedAt());
         return userDto;
     }
